@@ -158,6 +158,7 @@ print("id: $id");
     }
   }
   @override
+
   Widget build(BuildContext context) {
     // Переключение между индикатором загрузки, сообщением о пустых данных и списком событий
     return Scaffold(

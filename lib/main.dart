@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'Event.dart';
 import 'Register.dart';
 import 'Login.dart';
 void main() {
@@ -9,16 +10,16 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Вход и Регистрация',
+      title: 'Вход',
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: LoginPage(),
+      home: LoginScreen(),
     );
   }
 }
 
-class LoginPage extends StatelessWidget {
+/*class LoginPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -54,5 +55,51 @@ class LoginPage extends StatelessWidget {
     );
   }
 }
+*/
 
 
+
+class LoginScreen extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Вход'),
+      ),
+      body: SingleChildScrollView(
+        child: Center(
+          child: Padding(
+            padding: EdgeInsets.all(20),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                TextField(
+                  decoration: InputDecoration(
+                    labelText: 'Имя пользователя',
+                  ),
+                ),
+                SizedBox(height: 20),
+                TextField(
+                  decoration: InputDecoration(
+                    labelText: 'Пароль',
+                  ),
+                  obscureText: true,
+                ),
+                SizedBox(height: 20),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => EventPage()),
+                    );
+                  },
+                  child: Text('Войти'),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
