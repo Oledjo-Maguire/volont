@@ -73,7 +73,7 @@ class _EventPageState extends State<EventPage> {
 
 
         // Регулярное выражение для фильтрации русских слов
-       // final regexpRussianWords = RegExp(r'[\u0400-\u04FF]+');
+
 //print(data);
  List<String> entries = data.split('}},{"id"');
     for (String entry in entries) {
