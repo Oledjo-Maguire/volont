@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:url_launcher/url_launcher.dart';
 
 Future<String> fetchPageContent(String url) async {
   var client = http.Client();
@@ -40,6 +41,7 @@ class EventPage extends StatefulWidget {
 
 class _EventPageState extends State<EventPage> {
   bool _isLoading = true; // переменная для отслеживания состояния загрузки
+  List<String> id = [];
   List<String> name = [];
   List<String> categories = [];
   List<String> eventPeriod = [];
@@ -71,12 +73,16 @@ class _EventPageState extends State<EventPage> {
 
 
         // Регулярное выражение для фильтрации русских слов
-        final regexpRussianWords = RegExp(r'[\u0400-\u04FF]+');
+       // final regexpRussianWords = RegExp(r'[\u0400-\u04FF]+');
 //print(data);
  List<String> entries = data.split('}},{"id"');
     for (String entry in entries) {
    //   print("Количество итераций: $entry");
       // Ищем и добавляем name
+      int idStartIndex = entry.indexOf(':')+1;
+      int idEndIndex = entry.indexOf(',"name":');
+      id.add(entry.substring(idStartIndex, idEndIndex));
+
       int nameStartIndex = entry.indexOf('"name":') + 8;
       int nameEndIndex = entry.indexOf(',"categories":[', nameStartIndex)-1;
       name.add(entry.substring(nameStartIndex, nameEndIndex));
@@ -132,7 +138,7 @@ class _EventPageState extends State<EventPage> {
  // print("Organization: $organization");
 //  print("Location: $location");
   print("Количество итераций: $i");
-
+print("id: $id");
 // Вызов setState(), чтобы обновить пользовательский интерфейс после завершения парсинга
 
 
@@ -164,37 +170,51 @@ class _EventPageState extends State<EventPage> {
         itemCount: i,
         itemBuilder: (BuildContext context, int index) {
           return Card(
-            clipBehavior: Clip.antiAlias, // Это позволит обрезать изображение по границам Card
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch, // Растягиваем карточку по ширине родителя
-              children: <Widget>[
-                if (imageLinks[index].isNotEmpty) // Проверка есть ли изображение
-                  ConstrainedBox(
-                    constraints: BoxConstraints(
-                      minHeight: 180, // Минимальная высота для изображения
-                      maxHeight: 200, // Максимальная высота для изображения
+            clipBehavior: Clip.antiAlias,
+            child: InkWell(
+              onTap: () async {
+                // Сформируйте URL для события
+                final url = 'https://dobro.ru/event/${id[index]}';
+                // Проверьте можно ли запустить URL
+                if (await canLaunch(url)) {
+                  await launch(url); // Запускаем URL
+                } else {
+                  // Выведите ошибку, если URL нельзя запустить
+                  throw 'Не могу запустить $url';
+                }
+              },
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch, // Растягиваем карточку по ширине родителя
+                children: <Widget>[
+                  if (imageLinks[index].isNotEmpty) // Проверка есть ли изображение
+                    ConstrainedBox(
+                      constraints: BoxConstraints(
+                        minHeight: 180, // Минимальная высота для изображения
+                        maxHeight: 200, // Максимальная высота для изображения
+                      ),
+                      child: Image.network(
+                        imageLinks[index],
+                        fit: BoxFit.cover, // Растягиваем изображение чтобы оно покрыло всю область
+                      ),
                     ),
-                    child: Image.network(
-                      imageLinks[index],
-                      fit: BoxFit.cover, // Растягиваем изображение чтобы оно покрыло всю область
+                  ListTile(
+                    title: Text(name[index]),
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        Text(categories[index]),
+                        Text(eventPeriod[index]),
+                        Text(organization[index]),
+                        Text(location[index]),
+                      ],
                     ),
                   ),
-                ListTile(
-                  title: Text(name[index]),
-                  subtitle: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      Text(categories[index]),
-                      Text(eventPeriod[index]),
-                      Text(organization[index]),
-                      Text(location[index]),
-                    ],
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
           );
         },
+
       ),
     );
   }
