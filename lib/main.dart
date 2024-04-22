@@ -1,105 +1,100 @@
 import 'package:flutter/material.dart';
-import 'Event.dart';
-import 'Register.dart';
+import 'package:provider/provider.dart';
 import 'Login.dart';
+import 'Users.dart';
+import 'Admins.dart';
+import 'Register.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert' as convert;
+import 'Admins.dart';
+
+List<Admins> _adminsList = [];
+late Admins admins;
+
 void main() {
   runApp(MyApp());
+
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
+  const MyApp({super.key});
+
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Вход',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      home: LoginScreen(),
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+
+  getAdminsFromSheet() async {
+    var raw = await http.get(
+        Uri.parse(
+            "https://script.google.com/macros/s/AKfycbxRVLUg9ZCYxAF-WalMi-jrcY8Ux2kP2kIKQrrjMx_dZhYoCyWQil9e9vX9gJ_Z1ZCqCQ/exec"
+        )
     );
-  }
-}
+    var jsonAdmins = convert.jsonDecode(raw.body);
 
-/*class LoginPage extends StatelessWidget {
+    jsonAdmins.forEach((element){
+      print(element);
+      admins = Admins(
+        password: element['Пароль'].toString() ?? '',
+        firstName: element['Имя'].toString() ?? '',
+        lastName: element['Фамилия'].toString() ?? '',
+        middleName: element['Отчество'].toString() ?? '',
+      );
+      _adminsList.add(admins);
+    });
+  }
+
+  @override
+  void initState() {
+    try{
+      getAdminsFromSheet();
+    } catch(e){
+      print(e);
+    }
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Вход'),
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => LoginScreen()),
-                );
-              },
-              child: Text('Войти'),
-            ),
-            SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => RegistrationPage()),
-                );
-              },
-              child: Text('Зарегистрироваться'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-*/
-
-
-
-class LoginScreen extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Вход'),
-      ),
-      body: SingleChildScrollView(
-        child: Center(
-          child: Padding(
-            padding: EdgeInsets.all(20),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                TextField(
-                  decoration: InputDecoration(
-                    labelText: 'Имя пользователя',
-                  ),
-                ),
-                SizedBox(height: 20),
-                TextField(
-                  decoration: InputDecoration(
-                    labelText: 'Пароль',
-                  ),
-                  obscureText: true,
-                ),
-                SizedBox(height: 20),
-                ElevatedButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => EventPage()),
-                    );
-                  },
-                  child: Text('Войти'),
-                ),
-              ],
-            ),
+    return ChangeNotifierProvider(
+        create: (context) => AdminsProvider(),
+        child: MaterialApp(
+          title: 'Вход',
+          theme: ThemeData(
+            primarySwatch: Colors.blue,
           ),
-        ),
-      ),
+          home: LoginScreen(),
+        )
     );
   }
 }
+
+class AdminsProvider extends ChangeNotifier {
+
+  List<Admins> get adminsList => _adminsList;
+
+  void addAdmin(Admins admin) {
+    _adminsList.add(admin);
+    notifyListeners();
+  }
+
+  bool checkLogin(String firstName, String lastName, String middleName) {
+    for (Admins admin in _adminsList) {
+      if (admin.firstName == firstName && admin.lastName == lastName && admin.middleName == middleName) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  bool checkPassword(String password){
+    for (Admins admin in _adminsList) {
+      if (admin.password == password) {
+        return true;
+      }
+    }
+    return false;
+  }
+}
+
