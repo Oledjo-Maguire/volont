@@ -30,7 +30,9 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _additionalInfoController = TextEditingController();
 
   bool _isValidLogin = false;
-
+  String firstName ='';
+  String lastName='';
+  String middleName='';
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -73,9 +75,9 @@ class _LoginScreenState extends State<LoginScreen> {
                 SizedBox(height: 20),
                 ElevatedButton(
                   onPressed: () {
-                    String firstName = _firstNameController.text;
-                    String lastName = _lastNameController.text;
-                    String middleName = _middleNameController.text;
+                     firstName = _firstNameController.text;
+                     lastName = _lastNameController.text;
+                     middleName = _middleNameController.text;
 
                     if(firstName.isEmpty || lastName.isEmpty || middleName.isEmpty) {
                       ScaffoldMessenger.of(context).showSnackBar(
@@ -105,7 +107,10 @@ class _LoginScreenState extends State<LoginScreen> {
                           if (isValidPass) {
                             Navigator.push(
                               context,
-                              MaterialPageRoute(builder: (context) => AdminPage()),
+                              MaterialPageRoute(builder: (context) => AdminPage(
+                                firstName: firstName,
+                                lastName: lastName,
+                                middleName: middleName,)),
                             );
                           } else {
                             ScaffoldMessenger.of(context).showSnackBar(
@@ -117,9 +122,15 @@ class _LoginScreenState extends State<LoginScreen> {
                           }
                         }
                       } else {
-                        Navigator.push(
+                        Navigator.push( // <--- Вставьте этот блок кода здесь
                           context,
-                          MaterialPageRoute(builder: (context) => EventPage()),
+                          MaterialPageRoute(
+                            builder: (context) => EventPage(
+                              firstName: firstName,
+                              lastName: lastName,
+                              middleName: middleName,
+                            ),
+                          ),
                         );
                       }
                     }
