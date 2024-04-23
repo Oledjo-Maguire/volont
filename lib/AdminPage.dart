@@ -4,7 +4,11 @@ import 'Event.dart';
 import 'Register.dart';
 
 class AdminPage extends StatefulWidget {
-  const AdminPage({Key? key}) : super(key: key);
+  final String firstName;
+  final String lastName;
+  final String middleName;
+
+  AdminPage({Key? key, required this.firstName, required this.lastName, required this.middleName}) : super(key: key);
 
   @override
   State<AdminPage> createState() => _AdminPageState();
@@ -31,7 +35,11 @@ class _AdminPageState extends State<AdminPage> with SingleTickerProviderStateMix
       body: TabBarView(
         controller: _tabController,
         children: [
-          EventPage(),
+          EventPage(
+            firstName: widget.firstName,
+            lastName: widget.lastName,
+            middleName: widget.middleName,
+          ),
           const CreateScreen(),
         ],
       ),

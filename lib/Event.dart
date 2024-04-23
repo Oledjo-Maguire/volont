@@ -1,9 +1,10 @@
 import 'dart:convert';
-
+import 'package:mailer/mailer.dart';
+import 'package:mailer/smtp_server.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
-
+import 'package:volont/Login.dart';
 
 Future<String> fetchPageContent(String url) async {
   var client = http.Client();
@@ -21,8 +22,43 @@ Future<String> fetchPageContent(String url) async {
     client.close();
   }
 }
+String createMessage(String firstName, String lastName, String middleName, String eventName) {
+  // Склейка ФИО и названия события в одну строку
+  return '$lastName $firstName $middleName, заявил об участии в событии: "$eventName"!';
+}
+void sendEmailWithAttachment(String firstName, String lastName, String middleName, String eventName) async {
+  String username = 'volontapp@outlook.com'; // Замените на ваш адрес электронной почты
+  String password = 'jodtdiehtdglqsou'; // Замените на ваш пароль
 
+  final smtpServer = SmtpServer('smtp-mail.outlook.com',
+      port: 587,
+      username: username,
+      password: password,
+      ssl: false, // Для Outlook используется TLS, а не SSL
+      ignoreBadCertificate: true // Используйте это с осторожностью
+  );
+
+  String messageBody = createMessage(firstName, lastName, middleName, eventName); // Используем уже существующую функцию для создания сообщения
+
+  final message = Message()
+    ..from = Address(username, 'Your Name') // Замените 'Your Name' на ваше имя
+    ..recipients.add('volontapp@outlook.com') // Адрес получателя
+    ..subject = 'Письмо о участии: $eventName' // Тема письма включает название события
+    ..text = messageBody; // Берем текст сообщения
+
+  try {
+    final sendReport = await send(message, smtpServer);
+    print('Письмо отправлено: $sendReport');
+  } catch (e) {
+    print('Ошибка отправки письма: $e');
+  }
+}
 class EventPage extends StatefulWidget {
+  final String firstName;
+  final String lastName;
+  final String middleName;
+
+  EventPage({Key? key, required this.firstName, required this.lastName, required this.middleName}) : super(key: key);
   @override
   _EventPageState createState() => _EventPageState();
 }
@@ -90,10 +126,6 @@ class _EventPageState extends State<EventPage> {
         // Обрезаем данные для последующей обработки
         String data = htmlContent.substring(startIndex + startMarker.length, endIndex);
 
-
-        // Регулярное выражение для фильтрации русских слов
-
-//print(data);
         List<String> entries = data.split('}},{"id"');
         for (String entry in entries) {
           //   print("Количество итераций: $entry");
@@ -105,8 +137,6 @@ class _EventPageState extends State<EventPage> {
           int nameStartIndex = entry.indexOf('"name":') + 8;
           int nameEndIndex = entry.indexOf(',"categories":[', nameStartIndex)-1;
           name.add(entry.substring(nameStartIndex, nameEndIndex));
-          /* String nameEntry = entry.substring(nameStartIndex, nameEndIndex);
-      name.add(nameEntry.substring(nameEntry.indexOf('"'), nameEntry.lastIndexOf('"') ));*/
 
           // Добавляем categories (предполагая, что categories и eventPeriod разделены маркером eventPeriod)
           int categoriesStartIndex = entry.indexOf('"title":') ;
@@ -121,16 +151,11 @@ class _EventPageState extends State<EventPage> {
           String  eventPeriodEntry = entry.substring(eventPeriodStartIndex, eventPeriodEndIndex);
           eventPeriod.add( eventPeriodEntry.substring(eventPeriodEntry.indexOf('"shortTitle":"')+14, eventPeriodEntry.indexOf('","startDate') ));
 
-
           int imageLinksStartIndex = entry.indexOf('"imageFile"') + 11;
           int imageLinksEndIndex = entry.indexOf(',"organizer"', imageLinksStartIndex);
           // imageLinks.add(entry.substring(imageLinksStartIndex, imageLinksEndIndex));
           String  imageLinksEntry = entry.substring(imageLinksStartIndex, imageLinksEndIndex);
           imageLinks.add( imageLinksEntry.substring(imageLinksEntry.indexOf('"url":"')+7, imageLinksEntry.indexOf('","id"') ));
-
-
-
-
 
           // Добавляем organization
           int organizationStartIndex = entry.indexOf('"organization","name"') + 16;
@@ -148,27 +173,14 @@ class _EventPageState extends State<EventPage> {
 
           i++; // Увеличиваем счетчик итераций
         }
-
-
-
-        // print("Names: $name");
-        //print("Categories: $categories");
-//  print("EventPeriod: $eventPeriod");
-        // print("Organization: $organization");
-//  print("Location: $location");
         print("Количество итераций: $i");
         print("id: $id");
-// Вызов setState(), чтобы обновить пользовательский интерфейс после завершения парсинга
-
-
-
       } else {
         print('Не удалось извлечь данные между маркерами.');
       }
     } catch (e) {
       print('Ошибка при загрузке страницы: $e');
       print("Количество итераций: $i");
-
     }
     finally{
       setState(() {
@@ -194,16 +206,45 @@ class _EventPageState extends State<EventPage> {
             clipBehavior: Clip.antiAlias,
             child: InkWell(
               onTap: () async {
-                // Проверяем, что ID не равно 'kubsau', и если да, то формируем URL.
-                // В противном случае ничего не делаем, так как не ожидается перехода по URL.
-                if (id[index] != "kubsau") {
+                if (id[index] == "kubsau") {
+                  // Показать диалоговое окно с сообщением и кнопками "Да" и "Нет"
+                  final bool? result = await showDialog<bool>(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return AlertDialog(
+                        title: const Text('Участие в событии'),
+                        content: const Text('Вы хотите участвовать?'),
+                        actions: <Widget>[
+                          TextButton(
+                            onPressed: () {
+                              // Закрыть диалог с возвратом значения "false"
+                              Navigator.pop(context, false);
+                            },
+                            child: const Text('Нет'),
+                          ),
+                          TextButton(
+                            onPressed: () {
+                              // Закрыть диалог с возвратом значения "true"
+                              Navigator.pop(context, true);
+                            },
+                            child: const Text('Да'),
+                          ),
+                        ],
+                      );
+                    },
+                  );
+
+                  // Если пользователь нажал "Да", можно выполнить дальнейшие действия
+                  if (result == true) {
+                    // Предполагаем, что у вас есть переменная eventName с названием события, на которое пользователь решил нажать
+                    sendEmailWithAttachment(widget.firstName, widget.lastName, widget.middleName, name[index]);
+                  }
+                } else {
+                  // Текущий код для обработки других ID, не равных "kubsau"
                   final String url = 'https://dobro.ru/event/${id[index]}';
-                  // Проверка, можно ли открыть URL.
                   if (await canLaunch(url)) {
-                    // Если да, открываем URL.
                     await launch(url);
                   } else {
-                    // Если нет, выводим ошибку.
                     throw 'Не могу запустить $url';
                   }
                 }
