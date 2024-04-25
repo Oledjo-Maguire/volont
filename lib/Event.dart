@@ -87,34 +87,35 @@ class _EventPageState extends State<EventPage> {
     // String api = http.get(Uri.parse('https://script.google.com/macros/s/AKfycbwYNl2_Oz5aozz8bVvV7C8-iNSx22xvlYiVt9D7DvX-he3ph7zDvbERgysuebKSZijG7Q/exec')) as String;
     String url = 'https://dobro.ru/search?t=e&e%5Bsettlement%5D%5Btitle%5D=Краснодар&e%5Bsettlement%5D%5Bregion%5D=23&e%5Bsettlement%5D%5Blat%5D=45.040216&e%5Bsettlement%5D%5Blon%5D=38.975996&e%5Bsettlement%5D%5BcountryCode%5D=RU&e%5Bonline%5D=0'; // URL
     String volontApi = 'https://script.google.com/macros/s/AKfycbwYNl2_Oz5aozz8bVvV7C8-iNSx22xvlYiVt9D7DvX-he3ph7zDvbERgysuebKSZijG7Q/exec';
-
     try {
-      try {
-        var volontResponse = await http.get(Uri.parse(volontApi));
+      var volontResponse = await http.get(Uri.parse(volontApi));
 
-        if (volontResponse.statusCode == 200) {
-          List<dynamic> volontData = json.decode(volontResponse.body);
-          for (var event in volontData) {
-            id.insert(0, 'kubsau'); // Пустой ID, так как не предоставляется API
-            name.insert(0, event['Название']);
-            categories.insert(0, event['Категория']);
-            eventPeriod.insert(0, '${event['Дата начала']} - ${event['Дата окончания']}');
-            organization.insert(0, 'КубГАУ');
-            location.insert(0, event['Место проведения']);
-            imageLinks.insert(0, ''); // Установите путь к изображению в папке assets
-          }
-        } else {
-          throw Exception('Ошибка при загрузке из Volont API: ${volontResponse.statusCode}');
+      if (volontResponse.statusCode == 200) {
+        List<dynamic> volontData = json.decode(volontResponse.body);
+        for (var event in volontData) {
+          id.insert(0, 'kubsau'); // Пустой ID, так как не предоставляется API
+          name.insert(0, event['Название']);
+          categories.insert(0, event['Категория']);
+          eventPeriod.insert(0, '${event['Дата начала']} - ${event['Дата окончания']}');
+          organization.insert(0, 'КубГАУ');
+          location.insert(0, event['Место проведения']);
+          imageLinks.insert(0, ''); // Установите путь к изображению в папке assets
+          i++;
         }
-      } catch (e) {
-        print('Ошибка при загрузке страницы: $e');
-        print("Количество итераций: $i");
+      } else {
+        throw Exception('Ошибка при загрузке из Volont API: ${volontResponse.statusCode}');
       }
-      finally{
-        setState(() {
-          _isLoading = false; // Завершение загрузки
-        });
-      }
+    } catch (e) {
+      print('Ошибка при загрузке страницы: $e');
+      print("Количество итераций: $i");
+    }
+    finally{
+      setState(() {
+        _isLoading = false; // Завершение загрузки
+      });
+    }
+    try {
+
         // После загрузки и добавления данных из Volont API, продолжаем загружать другие данные...
 
 
