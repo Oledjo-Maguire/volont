@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -37,47 +38,63 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Вход'),
+        backgroundColor: Colors.green,
+        title: const Text(
+          'Вход',
+          style: TextStyle(
+              color: Colors.white
+          ),
+        ),
       ),
       body: SingleChildScrollView(
         child: Center(
           child: Padding(
-            padding: EdgeInsets.all(20),
+            padding: const EdgeInsets.all(20),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
                 TextField(
+                  textCapitalization: TextCapitalization.words,
                   controller: _firstNameController,
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
+                    border: OutlineInputBorder(),
                     labelText: 'Имя',
                   ),
                 ),
+                const SizedBox(height: 20,),
                 TextField(
+                  textCapitalization: TextCapitalization.words,
                   controller: _lastNameController,
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
+                    border: OutlineInputBorder(),
                     labelText: 'Фамилия',
                   ),
                 ),
+                const SizedBox(height: 20,),
                 TextField(
+                  textCapitalization: TextCapitalization.words,
                   controller: _middleNameController,
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
+                    border: OutlineInputBorder(),
                     labelText: 'Отчество',
                   ),
                   obscureText: false,
                 ),
+                const SizedBox(height: 20,),
                 _isValidLogin ? TextField(
                   controller: _additionalInfoController,
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
+                    border: OutlineInputBorder(),
                     labelText: 'Пароль',
                   ),
                   obscureText: true,
                 ) : Container(),
-                SizedBox(height: 20),
+                const SizedBox(height: 20),
                 ElevatedButton(
                   onPressed: () {
-                     firstName = _firstNameController.text;
-                     lastName = _lastNameController.text;
-                     middleName = _middleNameController.text;
+                    firstName = _firstNameController.text;
+                    lastName = _lastNameController.text;
+                    middleName = _middleNameController.text;
 
                     if(firstName.isEmpty || lastName.isEmpty || middleName.isEmpty) {
                       ScaffoldMessenger.of(context).showSnackBar(
@@ -122,7 +139,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           }
                         }
                       } else {
-                        Navigator.push( // <--- Вставьте этот блок кода здесь
+                        Navigator.push(
                           context,
                           MaterialPageRoute(
                             builder: (context) => EventPage(
@@ -135,7 +152,15 @@ class _LoginScreenState extends State<LoginScreen> {
                       }
                     }
                   },
-                  child: Text('Войти'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green,
+                  ),
+                  child: const Text(
+                    'Войти',
+                    style: TextStyle(
+                        color: Colors.white
+                    ),
+                  ),
                 ),
               ],
             ),

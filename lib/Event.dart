@@ -4,7 +4,7 @@ import 'package:mailer/smtp_server.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
-import 'package:volont/Login.dart';
+import 'Login.dart';
 
 Future<String> fetchPageContent(String url) async {
   var client = http.Client();
@@ -41,7 +41,7 @@ void sendEmailWithAttachment(String firstName, String lastName, String middleNam
   String messageBody = createMessage(firstName, lastName, middleName, eventName); // Используем уже существующую функцию для создания сообщения
 
   final message = Message()
-    ..from = Address(username, 'Your Name') // Замените 'Your Name' на ваше имя
+    ..from = Address(username, 'Name') // Замените 'Your Name' на ваше имя
     ..recipients.add('volontapp@outlook.com') // Адрес получателя
     ..subject = 'Письмо о участии: $eventName' // Тема письма включает название события
     ..text = messageBody; // Берем текст сообщения
@@ -85,37 +85,39 @@ class _EventPageState extends State<EventPage> {
 
 */
     // String api = http.get(Uri.parse('https://script.google.com/macros/s/AKfycbwYNl2_Oz5aozz8bVvV7C8-iNSx22xvlYiVt9D7DvX-he3ph7zDvbERgysuebKSZijG7Q/exec')) as String;
-    String url = 'https://dobro.ru/search?t=e&e%5Bsettlement%5D%5Btitle%5D=Краснодар&e%5Bsettlement%5D%5Bregion%5D=23&e%5Bsettlement%5D%5Blat%5D=45.040216&e%5Bsettlement%5D%5Blon%5D=38.975996&e%5Bsettlement%5D%5BcountryCode%5D=RU&e%5Bonline%5D=0'; // Замените на ваш URL
+    String url = 'https://dobro.ru/search?t=e&e%5Bsettlement%5D%5Btitle%5D=Краснодар&e%5Bsettlement%5D%5Bregion%5D=23&e%5Bsettlement%5D%5Blat%5D=45.040216&e%5Bsettlement%5D%5Blon%5D=38.975996&e%5Bsettlement%5D%5BcountryCode%5D=RU&e%5Bonline%5D=0'; // URL
     String volontApi = 'https://script.google.com/macros/s/AKfycbwYNl2_Oz5aozz8bVvV7C8-iNSx22xvlYiVt9D7DvX-he3ph7zDvbERgysuebKSZijG7Q/exec';
 
     try {
-    try {
-      var volontResponse = await http.get(Uri.parse(volontApi));
+      try {
+        var volontResponse = await http.get(Uri.parse(volontApi));
 
-      if (volontResponse.statusCode == 200) {
-        List<dynamic> volontData = json.decode(volontResponse.body);
-        for (var event in volontData) {
-          id.insert(0, 'kubsau'); // Пустой ID, так как не предоставляется API
-          name.insert(0, event['Название']);
-          categories.insert(0, event['Категория']);
-          eventPeriod.insert(0, '${event['Дата начала']} - ${event['Дата окончания']}');
-          organization.insert(0, 'КубГАУ');
-          location.insert(0, event['Место проведения']);
-          imageLinks.insert(0, ''); // Установите путь к изображению в папке assets
+        if (volontResponse.statusCode == 200) {
+          List<dynamic> volontData = json.decode(volontResponse.body);
+          for (var event in volontData) {
+            id.insert(0, 'kubsau'); // Пустой ID, так как не предоставляется API
+            name.insert(0, event['Название']);
+            categories.insert(0, event['Категория']);
+            eventPeriod.insert(0, '${event['Дата начала']} - ${event['Дата окончания']}');
+            organization.insert(0, 'КубГАУ');
+            location.insert(0, event['Место проведения']);
+            imageLinks.insert(0, ''); // Установите путь к изображению в папке assets
+          }
+        } else {
+          throw Exception('Ошибка при загрузке из Volont API: ${volontResponse.statusCode}');
         }
-      } else {
-        throw Exception('Ошибка при загрузке из Volont API: ${volontResponse.statusCode}');
+      } catch (e) {
+        print('Ошибка при загрузке страницы: $e');
+        print("Количество итераций: $i");
       }
+      finally{
+        setState(() {
+          _isLoading = false; // Завершение загрузки
+        });
+      }
+        // После загрузки и добавления данных из Volont API, продолжаем загружать другие данные...
 
-      // После загрузки и добавления данных из Volont API, продолжаем загружать другие данные...
 
-    } catch (e) {
-      print('Ошибка при загрузке данных: $e');
-    } finally {
-      setState(() {
-        _isLoading = false; // Завершение загрузки
-      });
-    }
 
       String htmlContent = await fetchPageContent(url);
       const String startMarker = '"e":[{';

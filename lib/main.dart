@@ -1,19 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'Login.dart';
-import 'Users.dart';
 import 'Admins.dart';
-import 'Register.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert' as convert;
-import 'Admins.dart';
 
 List<Admins> _adminsList = [];
 late Admins admins;
 
 void main() {
   runApp(MyApp());
-
 }
 
 class MyApp extends StatefulWidget {
@@ -97,4 +93,3 @@ class AdminsProvider extends ChangeNotifier {
     return false;
   }
 }
-
